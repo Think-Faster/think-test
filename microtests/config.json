@@ -1,0 +1,22 @@
+{
+  "base_url": "http://127.0.0.1",
+  "backend_prefix": "/api",
+  "timeout_seconds": 5,
+  "verify_tls": true,
+  "auth": {
+    "suffix": "bff",
+    "path": "/auth/login",
+    "method": "POST",
+    "body_format": "json",
+    "login_field": "login",
+    "password_field": "password",
+    "token_cookie": "access_token",
+    "send_token_as": "cookie"
+  },
+  "services": [
+    {"name": "bff", "suffix": "bff", "health": "/health"},
+    {"name": "dispatch", "suffix": "dispatch", "health": "/health"},
+    {"name": "funnel", "suffix": "funnel", "health": "/health"},
+    {"name": "ml", "suffix": "ml", "health": "/health"}
+  ]
+}
