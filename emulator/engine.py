@@ -17,7 +17,7 @@ import re
 import threading
 import time
 from collections import deque
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 JOURNAL = 'журнал_событий_пример.csv'
 CHANNELS = 'справочник_каналов_датчиков.csv'
@@ -30,6 +30,14 @@ FAULT_NAMES = {STUCK: 'залипание', OFFLINE: 'отключение', SHO
 BROKEN_STATE = 'Неисправен'          # чем отвечает текстовый канал при замыкании
 
 MIN_SPEED, MAX_SPEED = 1.0, 3600.0
+
+# Журнал ведётся по московскому времени, и модель читает «дата»/«время» как MSK. В контейнере часы
+# в UTC, поэтому «сейчас» берётся от MSK, а не от зоны процесса (как в ML/service/svc.py).
+MSK = timezone(timedelta(hours=3), 'MSK')
+
+
+def msk_now():
+    return datetime.now(MSK).replace(tzinfo=None)
 
 
 def read_csv(path):
@@ -133,7 +141,7 @@ class Engine(object):
         self.emitted = 0
         self.alarms = 0
         self.origin_real = time.time()
-        self.origin_model = datetime.now()
+        self.origin_model = msk_now()
         self.now = self.origin_model
 
         self.overrides = {}      # канал -> значение, выставленное руками
@@ -301,7 +309,7 @@ class Engine(object):
             return self
         self._started = True
         self.origin_real = time.time()
-        self.origin_model = datetime.now()
+        self.origin_model = msk_now()
         threading.Thread(target=self._play, daemon=True).start()
         threading.Thread(target=self._keep_alive, daemon=True).start()
         return self
